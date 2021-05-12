@@ -17,7 +17,7 @@ void add(char *name, int priority, int burst) {
     strcpy(t->name, name);
     // priority and burst
     t->priority = priority;
-    t->burst = t->remaining_burst = burst;
+    t->burst = burst;
     // insert into task list
     insert(&taskList, t);
 }
@@ -36,10 +36,10 @@ void schedule() {
     next_node = taskList;
     while(taskList) {
         Task *t = pickNextTask();
-        int slice = QUANTUM < t->remaining_burst ? QUANTUM : t->remaining_burst;
+        int slice = QUANTUM < t->burst ? QUANTUM : t->burst;
         run(t, slice);
-        t->remaining_burst -= slice;
-        if(!t->remaining_burst) {
+        t->burst -= slice;
+        if(!t->burst) {
             delete(&taskList, t);
         }
     }
