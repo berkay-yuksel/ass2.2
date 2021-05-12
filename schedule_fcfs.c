@@ -1,49 +1,45 @@
+#include<string.h>
+#include<stdlib.h>
 
-#include <stdlib.h>
-#include <zconf.h>
-#include <stdio.h>
-#include <unistd.h>
-#include "task.h"
-#include "list.h"
 #include "schedulers.h"
+#include "task.h"
+#include "cpu.h"
+#include "list.h"
 
-#define MIN_PRIORITY 1
-#define MAX_PRIORITY 10
-#define TID 1
+struct node *taskList = NULL;
 
-struct node *head = NULL;
-
+// add a task to the list
 void add(char *name, int priority, int burst) {
-    printf("VALUES PRIOR TO TASK LOAD\n");
-    printf("N: %s\n", name);
-    printf("P: %d\n", priority);
-    printf("B: %d\n", burst);
+    Task *t = malloc(sizeof(Task));
+    // allocate memory and then copy the name
+    t->name = malloc(sizeof(char) * (strlen(name) + 1));
+    strcpy(t->name, name);
+    // priority and burst
+    t->priority = priority;
+    t->burst = burst;
+    // insert into task list
+    insert(&taskList, t);
+}
 
-	// Add task
-	Task task = { .name = name, .tid = TID, .priority = priority, .burst = burst };
-	printf("VALUES AFTER TASK LOAD\n");
-    printf("N: %s\n", task.name);
-    printf("P: %d\n", task.priority);
-    printf("B: %d\n", task.burst);
-
-    if (head != NULL) {
-        // Inserting Node pointer and Task pointer objects
-        insert(&head, &task);
-    } else {
-        // Create the head Node
-        head = (struct node *)malloc(sizeof(struct node));
-        head->task = &task;
-        head->next = NULL;
-        printf("VALUES AFTER HEAD LOAD\n");
-        printf("N: %s\n", head->task->name);
-        printf("P: %d\n", head->task->priority);
-        printf("B: %d\n", head->task->burst);
-
+/* pickNextTask: pick the next task to execute with FCFS
+ * taskList must not be empty!
+ */
+Task *pickNextTask() {
+    struct node *lastNode = taskList;
+    while(1) {
+        if(!lastNode->next) {
+            break;
+        }
+        lastNode = lastNode->next;
     }
+    return lastNode->task;
 }
 
 // invoke the scheduler
 void schedule() {
-	// Traverse List
-    traverse(head);
+    while(taskList) {
+        Task *t = pickNextTask();
+        run(t, t->burst);
+        delete(&taskList, t);
+    }
 }
